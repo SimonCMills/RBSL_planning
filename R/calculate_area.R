@@ -10,6 +10,7 @@
 #'
 #' @export
 calculate_area <- function(fname) {
+
     if(!file.exists(fname)) {
         paste0(fname, ' does not exist')  |>
             strwrap() |>
@@ -50,7 +51,7 @@ calculate_area <- function(fname) {
             stop()
     }
 
-    df$bearing_deg <- dec_to_deg(df$bearing_clean)
+    df$bearing_deg <- hms_to_deg(df$bearing_clean)
 
     if(any(df$bearing_deg < 0)) {
         paste0(fname, ' contains bearings that are less than 0. Check that numbers
@@ -93,33 +94,41 @@ calculate_area <- function(fname) {
     df$coord_x <- df$X[1] + cumsum(df$disp_lon)
     df$coord_y <- df$Y[1] + cumsum(df$disp_lat)
 
+    cum_lat <- cumsum(df$disp_lat)[nrow(df)]
+    cum_lon <- cumsum(df$disp_lon)[nrow(df)]
+
+    if(cum_lat != 0 | cum_lon != 0) {
+        paste0('The bearings and lengths in "', fname, '" do not produce a closed
+        loop (i.e. the bearings and lengths do not return to the starting point),
+        with a discrepancy of ', round(cum_lat, 2) , ' metres latitude and ',
+               round(cum_lon, 2), ' metres longitude. Final bearing and length
+               has been adjusted to achieve closure') |>
+            strwrap() |>
+            paste(collapse=' \n') |>
+            writeLines()
+
+        x_delta <- df$X[1] - df$coord_x[nrow(df)-1]
+        y_delta <- df$Y[1] - df$coord_y[nrow(df)-1]
+        final_angle <- atan(y_delta/x_delta)
+        final_bearing <- dec_to_hms(angle_to_bearing(final_angle))
+        final_length <- y_delta/sin(final_angle)
+
+        # recompute angles etc.
+        df$angle_rad[nrow(df)] <- final_angle
+        df$BEARING[nrow(df)] <- final_bearing
+        # df$angle_rad <- df$angle_deg/180*pi
+        df$LENGTH[nrow(df)] <- round(final_length, 1)
+        df$disp_lat <- sin(df$angle_rad) * df$LENGTH
+        df$disp_lon <- cos(df$angle_rad) * df$LENGTH
+        df$coord_x <- df$X[1] + cumsum(df$disp_lon)
+        df$coord_y <- df$Y[1] + cumsum(df$disp_lat)
+    }
+
     # area calculation
     df$area_latitude <- cumsum(df$disp_lat)
     df$area_departure <- 0
     for(i in 1:(nrow(df)-1)) {
         df$area_departure[i] <- df$disp_lon[i+1] + df$disp_lon[i]
-    }
-
-    cum_lat <- df$area_latitude[nrow(df)]
-    cum_lon <- df$area_departure[nrow(df)]
-
-    if(cum_lat != 0) {
-        paste0('The bearings and lengths in "', fname, '" do not produce a closed
-        loop (i.e. the bearings and lengths do not return to the starting point).
-        There is an accumulated latitudinal discrepancy of ', round(cum_lat, 3), ' metres.
-               Check all entries.') |>
-            strwrap() |>
-            paste(collapse=' \n') |>
-            stop()
-    }
-    if(cum_lon != 0) {
-        paste0('The bearings and lengths in "', fname, '" do not produce a closed
-        loop (i.e. the bearings and lengths do not return to the starting point).
-        There is an accumulated longitudinal discrepancy of ', round(cum_lon, 3),
-        ' metres. Check all entries.') |>
-            strwrap() |>
-            paste(collapse=' \n') |>
-            stop()
     }
 
     df$area_product <- df$area_latitude * df$area_departure
