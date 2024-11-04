@@ -51,7 +51,7 @@ calculate_area <- function(fname) {
             stop()
     }
 
-    df$bearing_deg <- hms_to_deg(df$bearing_clean)
+    df$bearing_deg <- hms_to_dec(df$bearing_clean)
 
     if(any(df$bearing_deg < 0)) {
         paste0(fname, ' contains bearings that are less than 0. Check that numbers
@@ -116,8 +116,7 @@ calculate_area <- function(fname) {
         # recompute angles etc.
         df$angle_rad[nrow(df)] <- final_angle
         df$BEARING[nrow(df)] <- final_bearing
-        # df$angle_rad <- df$angle_deg/180*pi
-        df$LENGTH[nrow(df)] <- round(final_length, 1)
+        df$LENGTH[nrow(df)] <- final_length # do not round until final step!
         df$disp_lat <- sin(df$angle_rad) * df$LENGTH
         df$disp_lon <- cos(df$angle_rad) * df$LENGTH
         df$coord_x <- df$X[1] + cumsum(df$disp_lon)
@@ -126,14 +125,16 @@ calculate_area <- function(fname) {
 
     # area calculation
     df$area_latitude <- cumsum(df$disp_lat)
-    df$area_departure <- 0
+    df$area_departure <- NA
     for(i in 1:(nrow(df)-1)) {
         df$area_departure[i] <- df$disp_lon[i+1] + df$disp_lon[i]
     }
 
     df$area_product <- df$area_latitude * df$area_departure
-    area_ha <- sum(df$area_product)/2e4
+    area_ha <- sum(df$area_product, na.rm=TRUE)/2e4
     area_acre <- area_ha * 2.47105
+
+    df$LENGTH[nrow(df)] <- round(final_length, 2)
 
     list(df = df,
          area_ha = area_ha,
