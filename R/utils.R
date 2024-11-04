@@ -37,7 +37,7 @@ hms_to_dec <- function(clean_bearings) {
     return(pt1 + pt2/60 + pt3/3600)
 }
 
-dec_to_hms <- function(decimal) {
+dec_to_hms <- function(dec) {
     h <- floor(dec)
     s <- dec %% 1 * 3600
     m <- floor(s/60)
