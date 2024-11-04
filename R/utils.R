@@ -12,7 +12,8 @@ bearing_to_angle <- function(bearing) {
 #' @noRd
 clean_bearings <- function(x) {
     clean_coords <- gsub("[^0-9]", " ", df$BEARING) |>
-        gsub(pattern="^ *| *$", replacement = "")
+        gsub(pattern="^ *| *$", replacement = "") |>
+        gsub(pattern="  ", replacement=" ")
     return(clean_coords)
 }
 
