@@ -5,7 +5,8 @@ process_files <- function(file_list) {
 
     for(file_i in file_list) {
         outname_i <- gsub('^.*/', '', file_i)
-        print(paste0('~~~~~~~ Processing ', file_i, ' ~~~~~~~'))
+        paste0('~~~~~~~ Processing ', file_i, ' ~~~~~~~') |>
+            writeLines()
         if(!file.exists(file_i)) {
             paste0(file_i, ' is not found. Is your working directory set
                    properly?') |>
@@ -20,6 +21,8 @@ process_files <- function(file_list) {
             print('Creating outputs/ directory to write output files to')
             dir.create('outputs')
         }
-        write.csv(output_i, paste0('outputs/', outname_i))
+        write.csv(df_i, paste0('outputs/', outname_i), row.names=FALSE,
+                  quote = FALSE)
+        writeLines('')
     }
 }
