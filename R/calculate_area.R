@@ -10,7 +10,6 @@
 #'
 #' @export
 calculate_area <- function(fname) {
-    fname <- fnamelist[[2]]
     if(!file.exists(fname)) {
         paste0(fname, ' does not exist')  |>
             strwrap() |>
