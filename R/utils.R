@@ -12,7 +12,7 @@ bearing_to_angle <- function(bearing) {
 #' @noRd
 angle_to_bearing <- function(angle) {
     bearing <- 90-angle
-    bearing[angle > 90] <- 360 - (bearing[angle > 90] - 90)
+    bearing[angle > 90] <- 360 - (angle[angle > 90] - 90)
     bearing
 }
 
