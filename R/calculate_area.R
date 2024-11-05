@@ -10,7 +10,7 @@
 #'
 #' @export
 calculate_area <- function(fname) {
-
+    fname <- fnamelist[[2]]
     if(!file.exists(fname)) {
         paste0(fname, ' does not exist')  |>
             strwrap() |>
@@ -109,8 +109,10 @@ calculate_area <- function(fname) {
 
         x_delta <- df$X[1] - df$coord_x[nrow(df)-1]
         y_delta <- df$Y[1] - df$coord_y[nrow(df)-1]
-        final_angle <- atan(y_delta/x_delta)
-        final_bearing <- dec_to_hms(angle_to_bearing(final_angle))
+        final_angle <- atan2(y_delta, x_delta)
+        if(final_angle < 0) final_angle <- 2*pi + final_angle
+        final_angle_deg <- final_angle/pi * 180
+        final_bearing <- dec_to_hms(angle_to_bearing(final_angle_deg))
         final_length <- y_delta/sin(final_angle)
 
         # recompute angles etc.
