@@ -40,7 +40,7 @@ calculate_area <- function(fname) {
 
     # format bearings
     df$bearing_clean <- clean_bearings(df$BEARING)
-    bearing_check <- grepl('^[0-9]{1,3} [0-9]{2} [0-9]{2}$', df$bearing_clean)
+    bearing_check <- grepl('^[0-9]{1,3} [0-9]{1,2} [0-9]{1,2}$', df$bearing_clean)
     if(any(bearing_check == FALSE)) {
         c(paste0(fname, ' contains bearings that are not correctly formatted.
         Offending entries are: '),
