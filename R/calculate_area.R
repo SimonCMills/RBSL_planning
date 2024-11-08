@@ -93,14 +93,14 @@ calculate_area <- function(fname) {
     df$coord_x <- df$X[1] + cumsum(df$disp_lon)
     df$coord_y <- df$Y[1] + cumsum(df$disp_lat)
 
-    cum_lat <- cumsum(df$disp_lat)[nrow(df)]
-    cum_lon <- cumsum(df$disp_lon)[nrow(df)]
+    cum_lat <- cumsum(df$disp_lat)[nrow(df)] |> round(2)
+    cum_lon <- cumsum(df$disp_lon)[nrow(df)] |> round(2)
 
     if(cum_lat != 0 | cum_lon != 0) {
         paste0('The bearings and lengths in "', fname, '" do not produce a closed
         loop (i.e. the bearings and lengths do not return to the starting point),
-        with a discrepancy of ', round(cum_lat, 2) , ' metres latitude and ',
-               round(cum_lon, 2), ' metres longitude. Final bearing and length
+        with a discrepancy of ', cum_lat , ' metres latitude and ',
+               cum_lon, ' metres longitude. Final bearing and length
                has been adjusted to achieve closure') |>
             strwrap() |>
             paste(collapse=' \n') |>
@@ -113,11 +113,11 @@ calculate_area <- function(fname) {
         final_angle_deg <- final_angle/pi * 180
         final_bearing <- dec_to_hms(angle_to_bearing(final_angle_deg))
         final_length <- y_delta/sin(final_angle)
-
+        if(length(final_bearing) != length(df$BEARING[nrow(df)])) stop('fuck')
         # recompute angles etc.
         df$angle_rad[nrow(df)] <- final_angle
         df$BEARING[nrow(df)] <- final_bearing
-        df$LENGTH[nrow(df)] <- final_length # do not round until final step!
+        df$LENGTH[nrow(df)] <- final_length
         df$disp_lat <- sin(df$angle_rad) * df$LENGTH
         df$disp_lon <- cos(df$angle_rad) * df$LENGTH
         df$coord_x <- df$X[1] + cumsum(df$disp_lon)
@@ -132,10 +132,8 @@ calculate_area <- function(fname) {
     }
 
     df$area_product <- df$area_latitude * df$area_departure
-    area_ha <- sum(df$area_product, na.rm=TRUE)/2e4
+    area_ha <- abs(sum(df$area_product, na.rm=TRUE)/2e4)
     area_acre <- area_ha * 2.47105
-
-    df$LENGTH[nrow(df)] <- round(final_length, 2)
 
     list(df = df,
          area_ha = area_ha,
