@@ -3,3 +3,4 @@
 export(calculate_area)
 export(format_df)
 export(process_files)
+export(simulate_polygon)
