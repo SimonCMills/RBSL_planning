@@ -37,13 +37,21 @@ hms_to_dec <- function(clean_bearings) {
     return(pt1 + pt2/60 + pt3/3600)
 }
 
+#' Convert decimal degrees to HMS and format
+#'
+#' @noRd
 dec_to_hms <- function(dec) {
     h <- floor(dec)
     s <- dec %% 1 * 3600
     m <- floor(s/60)
     s <- round(s %% 60, 0)
 
-    paste0(paste0(rep(0, 3 - nchar(h)), h), '°',
-           paste0(rep(0, 2-nchar(m)), m), "'",
-           paste0(rep(0, 2-nchar(s)), s), "''")
+    format_hms <- function(x, target=3) {
+        x_len = target - nchar(x)
+        ifelse(x_len != 0, paste0(c(rep(0, x_len), x), collapse=''), x)
+    }
+
+    paste0(format_hms(h, 3), '°',
+           format_hms(m, 2), "'",
+           format_hms(s, 2), "''")
 }
